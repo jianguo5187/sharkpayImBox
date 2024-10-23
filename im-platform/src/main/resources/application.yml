@@ -1,0 +1,61 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: im-platform
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/boxim?useUnicode=true&characterEncoding=utf8&noAccessToProcedureBodies=true&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+    username: boxim
+    password: 123456
+
+  redis:
+    host: localhost
+    # 端口，默认为6379
+    port: 6379
+    # 数据库索引
+    database: 0
+    # 密码
+    password: 123456
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  configuration:
+    # 是否开启自动驼峰命名规则
+    map-underscore-to-camel-case: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations:
+    - classpath*:mapper/*.xml
+minio:
+  endpoint: http://127.0.0.1:9001 #内网地址
+  public: http://127.0.0.1:9001  #外网访问地址
+#  endpoint: http://127.0.0.1:9090
+#  public: http://43.129.193.243:9090
+  accessKey: minioadmin
+  secretKey: minioadmin
+  bucketName: box-im
+  imagePath: image
+  filePath: file
+  videoPath: video
+
+webrtc:
+  iceServers:
+    - urls: stun:stun.l.google.com:19302
+ip:
+  url: http://ip-api.com/json/
+jwt:
+  accessToken:
+    expireIn: 28800 #8个小时
+    secret: MIIBIjANBgkq
+  refreshToken:
+    expireIn: 604800 #7天
+    secret: IKDiqVmn0VFU
+
