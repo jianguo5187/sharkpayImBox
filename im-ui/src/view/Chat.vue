@@ -59,20 +59,22 @@
         for(var i=0;i<friends.length;i++){
           var objFriend = friends[i];
           if(objFriend.remarkName != undefined && objFriend.remarkName != ""){
-            this.setChatShowName(objFriend.id,objFriend.remarkName,objFriend.userIpAddress);
+            this.setChatShowName(objFriend.id,objFriend.remarkName,objFriend.userIpAddress,objFriend.thirdUserId);
           }else {
-            this.setChatShowName(objFriend.id,objFriend.nickName,objFriend.userIpAddress);
+            this.setChatShowName(objFriend.id,objFriend.nickName,objFriend.userIpAddress,objFriend.thirdUserId);
           }
         }
       },
-      setChatShowName(friednId,nickName,updateChatIpAddress){
+      setChatShowName(friednId,nickName,updateChatIpAddress,thirdUserId){
         let chats = this.$store.state.chatStore.chats;
         for(var j=0;j<chats.length;j++){
           var objChat = chats[j];
           if(objChat.targetId == friednId){
+            console.log("");
             this.$store.commit("activeChatIndex", j);
             this.$store.commit("updateChatRemark", nickName);
             this.$store.commit("updateChatIpAddress", updateChatIpAddress);
+            this.$store.commit("updateChatThirdUserId", thirdUserId);
             break;
           }
         }

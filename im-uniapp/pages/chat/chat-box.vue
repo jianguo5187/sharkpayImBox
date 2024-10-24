@@ -61,15 +61,19 @@
 					</image-upload>
 					<view class="tool-name">拍摄</view>
 				</view>
+				<view class="chat-tools-item" @click="onShowQuestion()">
+					<view class="tool-icon iconfont icon-receipt"></view>
+					<view class="tool-name">常见问题</view>
+				</view>
 				<!-- #ifndef APP-PLUS -->
 				<!-- APP 暂时不支持选择文件 -->
-				<view class="chat-tools-item">
+				<!-- <view class="chat-tools-item">
 					<file-upload :onBefore="onUploadFileBefore" :onSuccess="onUploadFileSuccess"
 						:onError="onUploadFileFail">
 						<view class="tool-icon iconfont icon-folder"></view>
 					</file-upload>
 					<view class="tool-name">文件</view>
-				</view>
+				</view> -->
 				<!-- #endif -->
 				<!-- <view class="chat-tools-item" @click="onVoiceInput()">
 					<view class="tool-icon iconfont icon-microphone"></view>
@@ -103,6 +107,13 @@
 		<chat-at-box ref="atBox" :ownerId="group.ownerId" :members="groupMembers"
 			@complete="onAtComplete"></chat-at-box>
 	</view>
+	<uni-popup ref="popup">
+		<scroll-view class="scroll-view pop" scroll-y="true">
+			<view v-for="q in questions" @click="onHideQuestion(q.content)" :key="q.id" class="popup-use">
+				{{ q.content}}
+			</view>
+		</scroll-view>
+	</uni-popup>
 </template>
 
 <script>
@@ -123,7 +134,8 @@
 				keyboardHeight: 322,
 				atUserIds: [],
 				recordText: "",
-				showMinIdx: 0 // 下标小于showMinIdx的消息不显示，否则可能很卡
+				showMinIdx: 0, // 下标小于showMinIdx的消息不显示，否则可能很卡
+				questions:[],
 			}
 		},
 		methods: {
@@ -182,6 +194,23 @@
 				uni.navigateTo({
 					url: `/pages/chat/chat-video?mode=voice&friend=${friendInfo}&isHost=true`
 				})
+			},
+			onGetQuestion(){
+				this.$http({
+					url: '/defaultMessage/loadAllDefaultMessage',
+					method: 'GET',
+				}).then((data) => {
+					console.log('questions: ' + data);
+					this.questions = data;
+				})
+			},
+			onShowQuestion(){
+				this.$refs['popup'].open();
+			},
+			onHideQuestion(message){
+				this.sendText = message;
+				this.sendTextMessage();
+				this.$refs['popup'].close();
 			},
 			moveChatToTop() {
 				let chatIdx = this.$store.getters.findChatIdx(this.chat);
@@ -679,7 +708,7 @@
 			// setTimeout(() => {
 				
 			// },100);
-
+			this.onGetQuestion();
 			console.log('onload2');
 		},
 		onShow() {
@@ -868,5 +897,34 @@
 			}
 
 		}
+	}
+	.scroll-view {
+	  white-space: nowrap;
+	  width: 100%;
+	}
+	.scroll-item {
+	  display: inline-block;
+	  width: 200px;
+	  margin-right: 10px;
+	  background-color: #f0f0f0;
+	  text-align: center;
+	  line-height: 50px;
+	}
+	.pop{
+		width: 100%;
+		height: 80%;
+		background-color: beige;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.popup-use{
+		padding: 24px 30px;
+		width: 290px;
+		display: flex;
+		justify-content: center;
+		letter-spacing: 2px;
+		border: 1px solid #9c8fcb;
+		columns: #ffffffdb;
 	}
 </style>

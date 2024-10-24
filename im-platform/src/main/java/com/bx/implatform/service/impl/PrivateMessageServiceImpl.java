@@ -23,6 +23,7 @@ import com.bx.implatform.enums.MessageType;
 import com.bx.implatform.enums.ResultCode;
 import com.bx.implatform.exception.GlobalException;
 import com.bx.implatform.mapper.PrivateMessageMapper;
+import com.bx.implatform.service.IDefaultMessageService;
 import com.bx.implatform.service.IFriendService;
 import com.bx.implatform.service.IPrivateMessageService;
 import com.bx.implatform.service.IUserService;
@@ -30,6 +31,7 @@ import com.bx.implatform.session.SessionContext;
 import com.bx.implatform.session.UserSession;
 import com.bx.implatform.util.BeanUtils;
 import com.bx.implatform.util.SensitiveFilterUtil;
+import com.bx.implatform.vo.DefaultMessageVO;
 import com.bx.implatform.vo.GroupMessageVO;
 import com.bx.implatform.vo.PrivateMessageVO;
 import com.bx.implatform.vo.UserVO;
@@ -51,6 +53,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
     private final IMClient imClient;
     private final SensitiveFilterUtil sensitiveFilterUtil;
     private final IUserService userService;
+    private final IDefaultMessageService defaultMessageService;
 
     @Override
     public Long sendMessage(PrivateMessageDTO dto) {
@@ -78,6 +81,36 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         sendMessage.setSendResult(true);
         imClient.sendPrivateMessage(sendMessage);
         log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", session.getUserId(), dto.getRecvId(), dto.getContent());
+
+        UserVO sendUser = userService.findUserById(session.getUserId());
+        //只判断玩家发送的信息，去自动回复
+        if(sendUser.getType() == 2){
+            //获取自动回复信息
+            List<DefaultMessageVO> defaultMessages = defaultMessageService.findAutoMessage(content);
+            for(DefaultMessageVO defaultMessageVO : defaultMessages){
+                // 保存消息
+                PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+                autoAnswerMsg.setSendId(dto.getRecvId());
+                autoAnswerMsg.setRecvId(session.getUserId());
+                autoAnswerMsg.setContent(defaultMessageVO.getAnswerContent());
+                autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
+                autoAnswerMsg.setSendTime(new Date());
+                this.save(autoAnswerMsg);
+                // 过滤消息内容
+                String autoAnswerContent = sensitiveFilterUtil.filter(defaultMessageVO.getAnswerContent());
+                autoAnswerMsg.setContent(autoAnswerContent);
+                // 推送消息
+                PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
+                IMPrivateMessage<PrivateMessageVO> autoAnswerSendMessage = new IMPrivateMessage<>();
+                autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 1));
+                autoAnswerSendMessage.setRecvId(session.getUserId());
+                autoAnswerSendMessage.setSendToSelf(true);
+                autoAnswerSendMessage.setData(autoAnswerMsgInfo);
+                autoAnswerSendMessage.setSendResult(true);
+                imClient.sendPrivateMessage(autoAnswerSendMessage);
+                log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), defaultMessageVO.getAnswerContent());
+            }
+        }
         return msg.getId();
     }
 

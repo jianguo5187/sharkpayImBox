@@ -73,6 +73,10 @@ export default {
 			state.chats[state.activeChatIndex].userIpAddress = userIpAddress;
 			this.commit("saveToStorage");
 		},
+		updateChatThirdUserId(state, thirdUserId) {
+			state.chats[state.activeChatIndex].thirdUserId = thirdUserId;
+			this.commit("saveToStorage");
+		},
 		resetUnreadCount(state, chatInfo) {
 			for (let idx in state.chats) {
 				if (state.chats[idx].type == chatInfo.type &&

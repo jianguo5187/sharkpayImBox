@@ -40,6 +40,7 @@ public class FriendController {
             vo.setRemarkName(f.getRemarkName());
             UserVO friendUser = userService.findUserById(f.getFriendId());
             vo.setUserIpAddress(friendUser.getUserIpAddress());
+            vo.setThirdUserId(friendUser.getThirdUserId());
             return vo;
         }).collect(Collectors.toList());
         return ResultUtils.success(vos);

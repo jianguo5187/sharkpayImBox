@@ -89,6 +89,7 @@
 								// 保存token
 								sessionStorage.setItem("accessToken", data.accessToken);
 								sessionStorage.setItem("refreshToken", data.refreshToken);
+                localStorage.removeItem("chats-1");
 								this.$message.success("登陆成功");
 								this.$router.push("/home/chat");
 							})
@@ -140,6 +141,7 @@
               sessionStorage.setItem("accessToken", data.accessToken);
               sessionStorage.setItem("refreshToken", data.refreshToken);
               this.$message.success("登陆成功");
+              localStorage.removeItem("chats-1");
               this.$router.push("/home/chat");
             })
       }

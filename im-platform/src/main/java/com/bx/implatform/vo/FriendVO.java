@@ -27,4 +27,7 @@ public class FriendVO {
 
     @ApiModelProperty(value = "归属地")
     private String userIpAddress;
+
+    @ApiModelProperty(value = "第三方用户id")
+    private String thirdUserId;
 }

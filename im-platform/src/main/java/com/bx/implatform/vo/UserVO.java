@@ -51,4 +51,7 @@ public class UserVO {
     @ApiModelProperty(value = "用户注册IP")
     private String userIpAddress;
 
+    @ApiModelProperty(value = "第三方用户id")
+    private String thirdUserId;
+
 }

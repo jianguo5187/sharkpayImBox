@@ -2,6 +2,7 @@
 	<div class="chat-box" @click="closeRefBox()" @mousemove="readedMessage()">
 		<el-container>
 			<el-header height="60px">
+        (<span style="color: red">{{ thirdUserId }}</span>)
 				<span>{{ title }}</span>
         <span>{{ ipAddress }}</span>
 				<span title="群聊信息" v-show="this.chat.type == 'GROUP'" class="btn-side el-icon-more"
@@ -712,11 +713,21 @@ export default {
 			}
 			return title;
 		},
+    thirdUserId() {
+      console.log("thirdUserId");
+      let thirdUserId = this.chat.thirdUserId;
+      if (thirdUserId != null) {
+        thirdUserId = thirdUserId.replace("sharkUser","");
+      }
+      return thirdUserId;
+    },
     ipAddress() {
       console.log("userIpAddress");
       let userIpAddress = this.chat.userIpAddress;
-      if (userIpAddress != null) {
+      if (userIpAddress != null && userIpAddress != 'null:null') {
         userIpAddress = "(" + userIpAddress + ")";
+      }else{
+        userIpAddress = "";
       }
       return userIpAddress;
     },
