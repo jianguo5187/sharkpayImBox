@@ -62,6 +62,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         if (Boolean.FALSE.equals(isFriends)) {
             throw new GlobalException(ResultCode.PROGRAM_ERROR, "您已不是对方好友，无法发送消息");
         }
+        UserVO sendUser = userService.findUserById(session.getUserId());
         // 保存消息
         PrivateMessage msg = BeanUtils.copyProperties(dto, PrivateMessage.class);
         msg.setSendId(session.getUserId());
@@ -74,7 +75,13 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         // 推送消息
         PrivateMessageVO msgInfo = BeanUtils.copyProperties(msg, PrivateMessageVO.class);
         IMPrivateMessage<PrivateMessageVO> sendMessage = new IMPrivateMessage<>();
-        sendMessage.setSender(new IMUserInfo(session.getUserId(), session.getTerminal()));
+
+        // 玩家的时候固定推送PC端
+        if(sendUser.getType() == 2){
+            sendMessage.setSender(new IMUserInfo(session.getUserId(), 1));
+        }else{
+            sendMessage.setSender(new IMUserInfo(session.getUserId(), session.getTerminal()));
+        }
         sendMessage.setRecvId(msgInfo.getRecvId());
         sendMessage.setSendToSelf(true);
         sendMessage.setData(msgInfo);
@@ -82,7 +89,6 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         imClient.sendPrivateMessage(sendMessage);
         log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", session.getUserId(), dto.getRecvId(), dto.getContent());
 
-        UserVO sendUser = userService.findUserById(session.getUserId());
         //只判断玩家发送的信息，去自动回复
         if(sendUser.getType() == 2){
             //获取自动回复信息
@@ -187,15 +193,15 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         // 获取当前用户的消息
         LambdaQueryWrapper<PrivateMessage> queryWrapper = Wrappers.lambdaQuery();
         Date minDate = null;
-        if(session.getUserId() == 1 || session.getUserId() == 2){
-            // 客服拉取最近取最近1个月的10条消息
-            minDate = DateUtils.addMonths(new Date(), -1);
-        }else{
-            // 客服拉取最近取最近2天的10条消息
-            minDate = DateUtils.addDays(new Date(), -1);
-        }
+//        if(session.getUserId() == 1 || session.getUserId() == 2){
+//            // 客服拉取最近取最近1个月的10条消息
+//            minDate = DateUtils.addMonths(new Date(), -1);
+//        }else{
+//            // 客服拉取最近取最近2天的10条消息
+//            minDate = DateUtils.addDays(new Date(), -1);
+//        }
         queryWrapper.gt(PrivateMessage::getId, minId)
-                .ge(PrivateMessage::getSendTime, minDate)
+//                .ge(PrivateMessage::getSendTime, minDate)
                 .ne(PrivateMessage::getStatus, MessageStatus.RECALL.code())
                 .and(wrap -> wrap.and(
                         wp -> wp.eq(PrivateMessage::getSendId, session.getUserId())
@@ -239,12 +245,13 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         // 获取当前用户的消息
         LambdaQueryWrapper<PrivateMessage> queryWrapper = Wrappers.lambdaQuery();
         Date minDate = null;
+
         if(session.getUserId() == 1 || session.getUserId() == 2){
             // 客服拉取最近取最近1个月的10条消息
             minDate = DateUtils.addMonths(new Date(), -1);
         }else{
             // 客服拉取最近取最近2天的10条消息
-            minDate = DateUtils.addDays(new Date(), -1);
+            minDate = DateUtils.addDays(new Date(), -2);
         }
         queryWrapper.gt(PrivateMessage::getId, minId)
             .ge(PrivateMessage::getSendTime, minDate)
@@ -255,7 +262,8 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                 .or(wp -> wp.eq(PrivateMessage::getRecvId, session.getUserId())
                     .in(PrivateMessage::getSendId, friendIds)))
             .orderByDesc(PrivateMessage::getId)
-            .last("limit 10");
+//            .last("limit 10")
+        ;
         List<PrivateMessage> messages = this.list(queryWrapper);
         // 消息顺序从小到大
         CollectionUtil.reverse(messages);
@@ -409,8 +417,8 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         // 只能拉取最近1个月的
         queryWrapper.eq(PrivateMessage::getRecvId, session.getUserId())
                 .in(PrivateMessage::getStatus,status);
-        List<PrivateMessage> messages = this.list(queryWrapper);
-        return messages.size();
+//        List<PrivateMessage> messages = this.count(queryWrapper);
+        return this.count(queryWrapper);
     }
 
     @Override

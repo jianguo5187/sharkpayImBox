@@ -38,7 +38,7 @@ minio:
 #  endpoint: http://127.0.0.1:9090
 #  public: http://47.57.188.97:9090
   endpoint: http://127.0.0.1:9090
-  public: https://ngbt.qdcspy.shop/file
+  public: https://ngbt.ethhg.cn/file
   accessKey: minioadmin
   secretKey: minioadmin
   bucketName: box-im

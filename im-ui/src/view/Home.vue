@@ -34,9 +34,9 @@
 					<span class="el-icon-setting"></span>
 				</el-menu-item>
 			</el-menu>
-			<div class="exit-box" @click="onExit()" title="退出">
-				<span class="icon iconfont icon-exit"></span>
-			</div>
+<!--			<div class="exit-box" @click="onExit()" title="退出">-->
+<!--				<span class="icon iconfont icon-exit"></span>-->
+<!--			</div>-->
 		</el-aside>
 		<el-main class="content-box">
 			<router-view></router-view>
@@ -141,12 +141,21 @@
 					console.log("初始化失败", e);
 				})
 			},
-			pullPrivateOfflineMessage(minId) {
-				this.$http({
-					url: "/message/private/pullOfflineMessage?minId=" + minId,
-					method: 'get'
-				});
-			},
+			// pullPrivateOfflineMessage(minId) {
+			// 	this.$http({
+			// 		url: "/message/private/pullOfflineMessage?minId=" + minId,
+			// 		method: 'get'
+			// 	});
+			// },
+      pullPrivateOfflineMessage(minId) {
+        this.$store.commit("loadingPrivateMsg", true)
+        this.$http({
+          url: "/message/private/pullOfflineMessage?minId=" + minId,
+          method: 'GET'
+        }).catch(() => {
+          this.$store.commit("loadingPrivateMsg", false)
+        })
+      },
 			pullGroupOfflineMessage(minId) {
 				this.$http({
 					url: "/message/group/pullOfflineMessage?minId=" + minId,
@@ -271,12 +280,17 @@
 				location.href = "/";
 			},
       getNoReadCnt() {
+        console.log("getNoReadCnt");
+        console.log(this.unreadCount);
+        if(this.unreadCount > 0){
+          this.playAudioTip();
+        }
         this.$http({
           url: `/message/private/noReadCnt`,
           method: 'get'
         }).then((noReadCnt) => {
-          if(noReadCnt > 0){
-            this.playAudioTip()
+          if(noReadCnt != this.unreadCount){
+            this.pullPrivateOfflineMessage(0);
           }
         });
       },
