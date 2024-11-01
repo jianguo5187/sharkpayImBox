@@ -263,8 +263,7 @@
 					type: 0
 				}
 				// 填充对方id
-				// this.fillTargetId(msgInfo, this.chat.targetId);
-				this.fillTargetId(msgInfo, 1);
+				this.fillTargetId(msgInfo, this.chat.targetId);
 				this.sendText = "";
 				this.$http({
 					url: this.messageAction,
