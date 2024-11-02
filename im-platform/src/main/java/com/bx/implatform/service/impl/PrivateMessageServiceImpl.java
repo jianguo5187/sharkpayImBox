@@ -93,6 +93,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         if(sendUser.getType() == 2){
             //获取自动回复信息
             List<DefaultMessageVO> defaultMessages = defaultMessageService.findAutoMessage(content);
+            boolean autoAnserFlg = false;
             for(DefaultMessageVO defaultMessageVO : defaultMessages){
                 // 保存消息
                 PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
@@ -108,16 +109,59 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                 // 推送消息
                 PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
                 IMPrivateMessage<PrivateMessageVO> autoAnswerSendMessage = new IMPrivateMessage<>();
-                autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 1));
+                autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 0)); //0:PC
                 autoAnswerSendMessage.setRecvId(session.getUserId());
                 autoAnswerSendMessage.setSendToSelf(true);
                 autoAnswerSendMessage.setData(autoAnswerMsgInfo);
                 autoAnswerSendMessage.setSendResult(true);
                 imClient.sendPrivateMessage(autoAnswerSendMessage);
                 log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), defaultMessageVO.getAnswerContent());
+//                readedMessage(dto.getRecvId());
+                autoAnserFlg = true;
             }
+//            if(autoAnserFlg){
+//                autoReadedMessage(dto.getRecvId(),session.getUserId());
+//            }
         }
         return msg.getId();
+    }
+
+
+    @Transactional(rollbackFor = Exception.class)
+    public void autoReadedMessage(Long kefuUserId,Long playUserId) {
+//        UserSession session = SessionContext.getSession();
+        // 推送消息给自己，清空会话列表上的已读数量
+        PrivateMessageVO msgInfo = new PrivateMessageVO();
+        msgInfo.setType(MessageType.READED.code());
+        msgInfo.setSendId(kefuUserId);
+        msgInfo.setRecvId(playUserId);
+        IMPrivateMessage<PrivateMessageVO> sendMessage = new IMPrivateMessage<>();
+        sendMessage.setData(msgInfo);
+        sendMessage.setSender(new IMUserInfo(kefuUserId, 0));
+        sendMessage.setRecvId(kefuUserId);
+        sendMessage.setSendToSelf(false);
+        sendMessage.setSendResult(false);
+        imClient.sendPrivateMessage(sendMessage);
+        // 推送回执消息给对方，更新已读状态
+        msgInfo = new PrivateMessageVO();
+        msgInfo.setType(MessageType.RECEIPT.code());
+        msgInfo.setSendId(kefuUserId);
+        msgInfo.setRecvId(playUserId);
+        sendMessage = new IMPrivateMessage<>();
+        sendMessage.setSender(new IMUserInfo(kefuUserId, 0));
+        sendMessage.setRecvId(playUserId);
+        sendMessage.setSendToSelf(false);
+        sendMessage.setSendResult(false);
+        sendMessage.setData(msgInfo);
+        imClient.sendPrivateMessage(sendMessage);
+        // 修改消息状态为已读
+        LambdaUpdateWrapper<PrivateMessage> updateWrapper = Wrappers.lambdaUpdate();
+        updateWrapper.eq(PrivateMessage::getSendId, playUserId)
+                .eq(PrivateMessage::getRecvId, kefuUserId)
+                .eq(PrivateMessage::getStatus, MessageStatus.SENDED.code())
+                .set(PrivateMessage::getStatus, MessageStatus.READED.code());
+        this.update(updateWrapper);
+        log.info("消息已读，接收方id:{},发送方id:{}", kefuUserId, playUserId);
     }
 
     @Override
@@ -380,8 +424,8 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         queryWrapper.eq(PrivateMessage::getSendId, sendUser.getId())
                 .eq(PrivateMessage::getRecvId, recvUser.getId())
                 .in(PrivateMessage::getStatus,status);
-        List<PrivateMessage> messages = this.list(queryWrapper);
-        return messages.size();
+//        List<PrivateMessage> messages = this.list(queryWrapper);
+        return this.count(queryWrapper);
     }
 
     @Override
@@ -402,8 +446,8 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         status.add(MessageStatus.UNSEND.code());
         queryWrapper.eq(PrivateMessage::getRecvId, sendUser.getId())
                 .in(PrivateMessage::getStatus,status);
-        List<PrivateMessage> messages = this.list(queryWrapper);
-        return messages.size();
+//        List<PrivateMessage> messages = this.list(queryWrapper);
+        return this.count(queryWrapper);
     }
 
     @Override

@@ -15,8 +15,17 @@
 				<view v-if="msgInfo.groupId && !msgInfo.selfSend" class="chat-msg-top">
 					<text>{{showName}}</text>
 				</view>
-
-				<view class="chat-msg-bottom">
+				<view class="chat-msg-bottom test-class"
+					v-for="m in msgInfo.contexts"
+					@click="handClickItemMessage(m,$event)"
+					v-if="msgInfo.autoMessageFlg"
+					style="display: flex;">
+					
+					<rich-text class="chat-msg-text"
+					:nodes="$emo.transform(m.content)"></rich-text>
+				</view>
+				
+				<view class="chat-msg-bottom" v-if="msgInfo.autoMessageFlg==undefined">
 					<rich-text class="chat-msg-text" v-if="msgInfo.type==$enums.MESSAGE_TYPE.TEXT"
 						:nodes="$emo.transform(msgInfo.content)"></rich-text>
 					<view class="chat-msg-image" v-if="msgInfo.type==$enums.MESSAGE_TYPE.IMAGE">
@@ -58,7 +67,7 @@
 						<text class="chat-readed" v-show="msgInfo.selfSend && !msgInfo.groupId
 								&& msgInfo.status==$enums.MESSAGE_STATUS.READED">已读</text>
 						<text class="chat-unread" v-show="msgInfo.selfSend && !msgInfo.groupId 
-								&& msgInfo.status!=$enums.MESSAGE_STATUS.READED">未读</text>
+								&& msgInfo.status!=$enums.MESSAGE_STATUS.READED && !msgInfo.hiddenReadFlg">未读</text>
 					</view>
 					<view class="chat-receipt" v-show="msgInfo.receipt" @click="onShowReadedBox">
 						<text v-if="msgInfo.receiptOk" class="tool-icon iconfont icon-ok"></text>
@@ -179,6 +188,12 @@
 			},
 			onShowReadedBox() {
 				this.$refs.chatGroupReaded.open();
+			},
+			handClickItemMessage(content){
+				console.log(123);
+				if(content.autoMessageFlg){
+					this.$emit('autoAnswer',content.content)
+				}
 			}
 		},
 		computed: {
@@ -238,6 +253,9 @@
 </script>
 
 <style scoped lang="scss">
+	.test-class{
+		padding: 2rpx 20rpx;
+	}
 	.chat-msg-item {
 		padding: 2rpx 20rpx;
 

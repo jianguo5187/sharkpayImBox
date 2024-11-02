@@ -12,7 +12,7 @@
 					<chat-message-item v-if="idx>=showMinIdx" :headImage="headImage(msgInfo)" @call="onRtCall(msgInfo)"
 						:showName="showName(msgInfo)" @recall="onRecallMessage" @delete="onDeleteMessage"
 						@longPressHead="onLongPressHead(msgInfo)" @download="onDownloadFile" :id="'chat-item-'+idx"
-						:msgInfo="msgInfo" :groupMembers="groupMembers">
+						:msgInfo="msgInfo" :groupMembers="groupMembers" @autoAnswer="autoAnswer" >
 					</chat-message-item>
 				</view>
 			</scroll-view>
@@ -195,23 +195,6 @@
 					url: `/pages/chat/chat-video?mode=voice&friend=${friendInfo}&isHost=true`
 				})
 			},
-			onGetQuestion(){
-				this.$http({
-					url: '/defaultMessage/loadAllDefaultMessage',
-					method: 'GET',
-				}).then((data) => {
-					console.log('questions: ' + data);
-					this.questions = data;
-				})
-			},
-			onShowQuestion(){
-				this.$refs['popup'].open();
-			},
-			onHideQuestion(message){
-				this.sendText = message;
-				this.sendTextMessage();
-				this.$refs['popup'].close();
-			},
 			moveChatToTop() {
 				let chatIdx = this.$store.getters.findChatIdx(this.chat);
 				this.$store.commit("moveTop", chatIdx);
@@ -247,7 +230,7 @@
 					return msgInfo.selfSend ? this.mine.nickName : this.chat.showName
 				}
 			},
-			sendTextMessage() {
+			sendTextMessage(autoMessageFlg) {
 				if (!this.sendText.trim() && this.atUserIds.length == 0) {
 					return uni.showToast({
 						title: "不能发送空白信息",
@@ -274,12 +257,20 @@
 					msgInfo.sendTime = new Date().getTime();
 					msgInfo.sendId = this.$store.state.userStore.userInfo.id;
 					msgInfo.selfSend = true;
-					msgInfo.readedCount = 0,
-						msgInfo.status = this.$enums.MESSAGE_STATUS.UNSEND;
+					msgInfo.readedCount = 0;
+					msgInfo.status = this.$enums.MESSAGE_STATUS.UNSEND;
+					if(autoMessageFlg){
+						msgInfo.hiddenReadFlg = true;
+					// 	msgInfo.contexts=[];
+					// 	msgInfo.contexts.push({content:msgInfo.content,autoMessageFlg:false})
+					}
 					this.$store.commit("insertMessage", msgInfo);
 					// 会话置顶
 					this.moveChatToTop();
 					this.sendText = "";
+					// if(autoMessageFlg){
+					// 	this.loadReaded(this.chat.targetId);
+					// }
 				}).finally(() => {
 					// 滚动到底部
 					this.scrollToBottom();
@@ -616,6 +607,126 @@
 				let info = uni.getSystemInfoSync()
 				let px = info.windowWidth * rpx / 750;
 				return Math.floor(rpx);
+			},
+			onGetQuestion(){
+				this.$http({
+					url: '/defaultMessage/loadAllDefaultMessage',
+					method: 'GET',
+				}).then((data) => {
+					console.log('questions: ' + data);
+					this.questions = data;
+					
+					let initWelcomeMsgFlg = uni.getStorageSync("initWelcomeMsgFlg");
+					if(initWelcomeMsgFlg == '1'){
+						// let chatMsg = this.chat.messages;
+						// let maxMsgId = 0;
+						// let msgInfo = {
+						// 	content: "常见问题：",
+						// 	atUserIds: this.isReceipt,
+						// 	type: 0,
+						// 	id:0,
+						// 	sendTime:new Date().getTime(),
+						// 	sendId:this.chat.targetId,
+						// 	selfSend:false,
+						// 	readedCount:0,
+						// 	status:this.$enums.MESSAGE_STATUS.SENDED,
+						// 	autoMessageFlg:true
+						// }
+						// this.$store.commit("insertMessage", msgInfo);
+						
+						// for(var i=0;i<data.length;i++){
+						// 	let msgInfo = {
+						// 		content: data[i].content,
+						// 		atUserIds: this.isReceipt,
+						// 		type: 0,
+						// 		id:0,
+						// 		sendTime:new Date().getTime(),
+						// 		sendId:this.chat.targetId,
+						// 		selfSend:false,
+						// 		readedCount:0,
+						// 		status:this.$enums.MESSAGE_STATUS.SENDED,
+						// 		autoMessageFlg:true
+						// 	}
+						// 	this.$store.commit("insertMessage", msgInfo);
+						// }
+						
+						// msgInfo.id = 0;
+						// msgInfo.sendTime = new Date().getTime();
+						// msgInfo.sendId = this.chat.targetId;
+						// msgInfo.selfSend = false;
+						// msgInfo.readedCount = 0,
+						// msgInfo.status = this.$enums.MESSAGE_STATUS.SENDED;
+						// msgInfo.autoMessageFlg = true;
+						
+						// for(var i=0;i<data.length;i++){
+						// 	let msgInfo = {
+						// 		content: data[i].content,
+						// 		atUserIds: this.isReceipt,
+						// 		type: 0
+						// 	}
+						// 	msgInfo.id = 0;
+						// 	msgInfo.sendTime = new Date().getTime();
+						// 	msgInfo.sendId = this.chat.targetId;
+						// 	msgInfo.selfSend = false;
+						// 	msgInfo.readedCount = 0,
+						// 	msgInfo.status = this.$enums.MESSAGE_STATUS.SENDED;
+						// 	msgInfo.autoMessageFlg = true;
+						// 	this.$store.commit("insertMessage", msgInfo);
+						// }
+						
+						let msgInfo = {
+							content: "常见问题：",
+							atUserIds: this.isReceipt,
+							type: 0,
+							contexts:[]
+						}
+						msgInfo.contexts.push({content:"常见问题：",autoMessageFlg:false})
+						for(var i=0;i<data.length;i++){
+							msgInfo.content = msgInfo.content + '<br><span>' + (i+1) + "." + data[i].content + "</span>";
+							msgInfo.contexts.push({content:data[i].content,autoMessageFlg:true})
+						}
+						msgInfo.id = 0;
+						msgInfo.sendTime = new Date().getTime();
+						msgInfo.sendId = this.chat.targetId;
+						msgInfo.selfSend = false;
+						msgInfo.readedCount = 0,
+						msgInfo.status = this.$enums.MESSAGE_STATUS.SENDED;
+						msgInfo.autoMessageFlg = true;
+						this.$store.commit("insertMessage", msgInfo);
+					}
+				})
+			},
+			onShowQuestion(){
+				this.$refs['popup'].open();
+			},
+			onHideQuestion(message){
+				this.sendText = message;
+				this.sendTextMessage();
+				this.$refs['popup'].close();
+			},
+			autoAnswer(content){
+				console.log('autoAnswer')
+				this.sendText = content;
+				this.sendTextMessage(true);
+				// alert(content);
+				// if(msgInfo.autoMessageFlg){
+				// 	this.sendText = msgInfo.content;
+					// this.sendTextMessage(true);
+				// }
+				// var userType = this.$store.state.userStore.userInfo.type;
+				// if (msgInfo.type==this.$enums.MESSAGE_TYPE.TEXT) {
+				// 	if(userType == 2 && msgInfo.defaultFlg != undefined && msgInfo.defaultFlg == 0){
+				// 		// alert('自动回复开发中')
+				// 		// alert(anwserContent)
+				// 		this.sendText = msgInfo.content;
+				// 		this.sendTextMessage();
+				// 	}
+				// }else if (msgInfo.type==this.$enums.MESSAGE_TYPE.IMAGE) {
+				// 	this.onSaveImg(msgInfo);
+				// }
+			},
+			handClickItemMessage(alert){
+				alert(123);
 			}
 		},
 		computed: {
@@ -702,13 +813,15 @@
 			this.isReceipt = false;
 			var a =  document.getElementsByClassName('uni-page-head-hd')[0]
 			a.style.display = 'none'
-			// this.$nextTick(() => {
-			// })
+			this.$nextTick(() => {
+				setTimeout(() => {
+					this.onGetQuestion();
+				},100);
+			})
 			// // 聊天数据
 			// setTimeout(() => {
 				
 			// },100);
-			this.onGetQuestion();
 			console.log('onload2');
 		},
 		onShow() {

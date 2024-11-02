@@ -29,13 +29,13 @@
 			<el-table-column prop="content" label="问题">
 				<template slot-scope="scope">
 					<el-input v-model="scope.row.content" clearable v-show="scope.row.id == cellIndex" />
-					<p v-show="scope.row.id != cellIndex">{{ scope.row.content }}</p>
+					<p v-show="scope.row.id != cellIndex" v-html="$emo.transform(scope.row.content)"></p>
 				</template>
 			</el-table-column>
 			<el-table-column prop="answerContent" label="回答">
 				<template slot-scope="scope">
 					<el-input v-model="scope.row.answerContent" clearable v-show="scope.row.id == cellIndex" />
-					<p v-show="scope.row.id != cellIndex">{{ scope.row.answerContent }}</p>
+					<p v-show="scope.row.id != cellIndex" v-html="$emo.transform(scope.row.answerContent)"></p>
 				</template>
 			</el-table-column>
 			<el-table-column prop="welcomeShowFlag" label="状态" width="180">

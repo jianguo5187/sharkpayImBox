@@ -1,5 +1,5 @@
 //设置环境(打包前修改此变量)
-const ENV = "DEV";
+const ENV = "PROD";
 const UNI_APP = {}
 if(ENV=="DEV"){
 	UNI_APP.BASE_URL = "http://127.0.0.1:8888";
@@ -21,7 +21,7 @@ if(ENV=="PROD"){
 	// UNI_APP.BASE_URL = "http://43.132.168.72:82/api";
 	// UNI_APP.WS_URL = "ws://43.132.168.72:8878/im";
 	// UNI_APP.WS_URL = "ws://47.57.188.97:8878/im";
-	UNI_APP.BASE_URL = "https://ngbt.ethhg.cn/api";
-	UNI_APP.WS_URL = "wss://ngbt.ethhg.cn/im";
+	UNI_APP.BASE_URL = "https://kfnd1.dofha.cn/api";
+	UNI_APP.WS_URL = "wss://kfnd1.dofha.cn/im";
 }
 export default UNI_APP
