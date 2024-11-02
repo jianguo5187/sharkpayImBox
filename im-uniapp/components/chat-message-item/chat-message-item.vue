@@ -15,14 +15,14 @@
 				<view v-if="msgInfo.groupId && !msgInfo.selfSend" class="chat-msg-top">
 					<text>{{showName}}</text>
 				</view>
-				<view class="chat-msg-bottom test-class"
-					v-for="m in msgInfo.contexts"
-					@click="handClickItemMessage(m,$event)"
-					v-if="msgInfo.autoMessageFlg"
-					style="display: flex;">
-					
-					<rich-text class="chat-msg-text"
-					:nodes="$emo.transform(m.content)"></rich-text>
+				
+				<view class="chat-msg-bottom" v-if="msgInfo.autoMessageFlg">
+				  <view class="chat-msg-text" >
+					<view class="" style="display: flex;" v-for="(m,index) in msgInfo.contexts" @click="handClickItemMessage(m,$event)" :key="index">
+					  <span v-if="index == 0">{{m.content}}</span>
+					  <span v-else style="color: #57D860;">{{index}}：{{m.content}}</span>
+					</view>
+				  </view>
 				</view>
 				
 				<view class="chat-msg-bottom" v-if="msgInfo.autoMessageFlg==undefined">
@@ -190,7 +190,7 @@
 				this.$refs.chatGroupReaded.open();
 			},
 			handClickItemMessage(content){
-				console.log(123);
+				// console.log(123);
 				if(content.autoMessageFlg){
 					this.$emit('autoAnswer',content.content)
 				}

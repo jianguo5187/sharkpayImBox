@@ -136,6 +136,7 @@
 				recordText: "",
 				showMinIdx: 0, // 下标小于showMinIdx的消息不显示，否则可能很卡
 				questions:[],
+				execGetQuestionflag :true
 			}
 		},
 		methods: {
@@ -608,6 +609,13 @@
 				let px = info.windowWidth * rpx / 750;
 				return Math.floor(rpx);
 			},
+			checkExecGetQuestion(){
+				let size = this.chat.messages.length;
+				if(size > 0 && this.execGetQuestionflag){
+					this.execGetQuestionflag = false;
+					this.onGetQuestion();
+				}
+			},
 			onGetQuestion(){
 				this.$http({
 					url: '/defaultMessage/loadAllDefaultMessage',
@@ -618,61 +626,6 @@
 					
 					let initWelcomeMsgFlg = uni.getStorageSync("initWelcomeMsgFlg");
 					if(initWelcomeMsgFlg == '1'){
-						// let chatMsg = this.chat.messages;
-						// let maxMsgId = 0;
-						// let msgInfo = {
-						// 	content: "常见问题：",
-						// 	atUserIds: this.isReceipt,
-						// 	type: 0,
-						// 	id:0,
-						// 	sendTime:new Date().getTime(),
-						// 	sendId:this.chat.targetId,
-						// 	selfSend:false,
-						// 	readedCount:0,
-						// 	status:this.$enums.MESSAGE_STATUS.SENDED,
-						// 	autoMessageFlg:true
-						// }
-						// this.$store.commit("insertMessage", msgInfo);
-						
-						// for(var i=0;i<data.length;i++){
-						// 	let msgInfo = {
-						// 		content: data[i].content,
-						// 		atUserIds: this.isReceipt,
-						// 		type: 0,
-						// 		id:0,
-						// 		sendTime:new Date().getTime(),
-						// 		sendId:this.chat.targetId,
-						// 		selfSend:false,
-						// 		readedCount:0,
-						// 		status:this.$enums.MESSAGE_STATUS.SENDED,
-						// 		autoMessageFlg:true
-						// 	}
-						// 	this.$store.commit("insertMessage", msgInfo);
-						// }
-						
-						// msgInfo.id = 0;
-						// msgInfo.sendTime = new Date().getTime();
-						// msgInfo.sendId = this.chat.targetId;
-						// msgInfo.selfSend = false;
-						// msgInfo.readedCount = 0,
-						// msgInfo.status = this.$enums.MESSAGE_STATUS.SENDED;
-						// msgInfo.autoMessageFlg = true;
-						
-						// for(var i=0;i<data.length;i++){
-						// 	let msgInfo = {
-						// 		content: data[i].content,
-						// 		atUserIds: this.isReceipt,
-						// 		type: 0
-						// 	}
-						// 	msgInfo.id = 0;
-						// 	msgInfo.sendTime = new Date().getTime();
-						// 	msgInfo.sendId = this.chat.targetId;
-						// 	msgInfo.selfSend = false;
-						// 	msgInfo.readedCount = 0,
-						// 	msgInfo.status = this.$enums.MESSAGE_STATUS.SENDED;
-						// 	msgInfo.autoMessageFlg = true;
-						// 	this.$store.commit("insertMessage", msgInfo);
-						// }
 						
 						let msgInfo = {
 							content: "常见问题：",
@@ -813,10 +766,11 @@
 			this.isReceipt = false;
 			var a =  document.getElementsByClassName('uni-page-head-hd')[0]
 			a.style.display = 'none'
+			
 			this.$nextTick(() => {
-				setTimeout(() => {
-					this.onGetQuestion();
-				},100);
+				// setTimeout(() => {
+					setInterval(this.checkExecGetQuestion,1)
+				// },100);
 			})
 			// // 聊天数据
 			// setTimeout(() => {
