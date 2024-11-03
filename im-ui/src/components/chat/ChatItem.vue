@@ -7,7 +7,12 @@
 		</div>
 		<div class="chat-right">
 			<div class="chat-name">
-				<div class="chat-name-text">{{chat.showName}}</div>
+				<div class="chat-name-text">
+          <span v-if="chat.thirdUserId != undefined && chat.thirdUserId != ''">
+            (<span style="color: red">{{chat.thirdUserId}}</span>)
+          </span>
+          {{chat.showName}}
+        </div>
 				<div class="chat-time-text">{{showTime}}</div>
 			</div>
 			<div class="chat-content">
@@ -79,6 +84,17 @@
 			showTime() {
 				return this.$date.toTimeText(this.chat.lastSendTime, true)
 			},
+      thirdUserId() {
+        console.log("thirdUserId");
+        let thirdUserId = "";
+        this.$nextTick(() => {
+          thirdUserId = this.chat.thirdUserId;
+          if (thirdUserId != null) {
+            thirdUserId = thirdUserId.replace("sharkUser","");
+          }
+        })
+        return thirdUserId;
+      },
 			atText() {
 				if (this.chat.atMe) {
 					return "[有人@我]"

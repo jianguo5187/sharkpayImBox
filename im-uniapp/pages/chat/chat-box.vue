@@ -136,7 +136,8 @@
 				recordText: "",
 				showMinIdx: 0, // 下标小于showMinIdx的消息不显示，否则可能很卡
 				questions:[],
-				execGetQuestionflag :true
+				execGetQuestionflag :true,
+				waitGetQuestionCnt:0,
 			}
 		},
 		methods: {
@@ -611,9 +612,13 @@
 			},
 			checkExecGetQuestion(){
 				let size = this.chat.messages.length;
-				if(size > 0 && this.execGetQuestionflag){
+				if((size > 0 || this.waitGetQuestionCnt > 5) && this.execGetQuestionflag){
 					this.execGetQuestionflag = false;
 					this.onGetQuestion();
+				}else{
+					setTimeout(() => {
+						this.waitGetQuestionCnt++
+					},1000);
 				}
 			},
 			onGetQuestion(){

@@ -5,7 +5,9 @@
 			</head-image>
 		</div>
 		<div class="friend-info">
-			<div class="friend-name">{{ friend.nickName}}</div>
+			<div class="friend-name">
+        (<span style="color: red">{{thirdUserId}}</span>)
+        {{ friend.nickName}}</div>
 			<div class="friend-online">
 				<el-image v-show="friend.onlineWeb" class="online" :src="require('@/assets/image/online_web.png')"
 					title="电脑设备在线" />
@@ -64,7 +66,15 @@
 		computed:{
 			friend(){
 				return this.$store.state.friendStore.friends[this.index];
-			}
+			},
+      thirdUserId() {
+        console.log("thirdUserId");
+        let thirdUserId = this.friend.thirdUserId;
+        if (thirdUserId != null) {
+          thirdUserId = thirdUserId.replace("sharkUser","");
+        }
+        return thirdUserId;
+      },
 		},
 		props: {
 			active: {
