@@ -9,7 +9,7 @@
 			<div class="chat-name">
 				<div class="chat-name-text">
           <span v-if="chat.thirdUserId != undefined && chat.thirdUserId != ''">
-            (<span style="color: red">{{chat.thirdUserId}}</span>)
+            (<span style="color: red">{{chat.thirdUserId.replace("sharkUser","")}}</span>)
           </span>
           {{chat.showName}}
         </div>
