@@ -12,6 +12,7 @@ import com.bx.implatform.vo.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -36,7 +37,11 @@ public class FriendController {
             FriendVO vo = new FriendVO();
             vo.setId(f.getFriendId());
             vo.setHeadImage(f.getFriendHeadImage());
-            vo.setNickName(f.getFriendNickName());
+            if(StringUtils.isNotEmpty(f.getRemarkName())){
+                vo.setNickName(f.getRemarkName());
+            }else{
+                vo.setNickName(f.getFriendNickName());
+            }
             vo.setRemarkName(f.getRemarkName());
             UserVO friendUser = userService.findUserById(f.getFriendId());
             vo.setUserIpAddress(friendUser.getUserIpAddress());

@@ -63,7 +63,7 @@ public interface IFriendService extends IService<Friend> {
      *
      * @param friendId 好友的用户id
      */
-    void addKefuFriend(Long kefuUserId, Long friendId);
+    void addKefuFriend(Long kefuUserId, Long friendId, String remarkName);
 
     void modifyFriendRemark(UpdateFriendRemarkVO vo);
 }

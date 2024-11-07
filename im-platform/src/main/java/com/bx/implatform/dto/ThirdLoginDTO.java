@@ -43,4 +43,9 @@ public class ThirdLoginDTO {
      * 用户IP
      */
     private String userIp;
+
+    /**
+     * 用户IP
+     */
+    private String remarkName;
 }

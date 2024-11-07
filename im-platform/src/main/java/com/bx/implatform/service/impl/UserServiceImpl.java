@@ -120,7 +120,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             // 给客服账号自动添加好友
             List<User> kefuUserList = this.findUserByType(1);
             for(User kefuUser: kefuUserList){
-                friendService.addKefuFriend(kefuUser.getId(),user.getId());
+                friendService.addKefuFriend(kefuUser.getId(),user.getId(),dto.getRemarkName());
             }
         }else{
 

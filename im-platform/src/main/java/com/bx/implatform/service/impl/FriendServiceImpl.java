@@ -2,6 +2,7 @@ package com.bx.implatform.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bx.implatform.contant.RedisKey;
@@ -52,8 +53,8 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
         }
         // 互相绑定好友关系
         FriendServiceImpl proxy = (FriendServiceImpl) AopContext.currentProxy();
-        proxy.bindFriend(userId, friendId);
-        proxy.bindFriend(friendId, userId);
+        proxy.bindFriend(userId, friendId,"");
+        proxy.bindFriend(friendId, userId,"");
         log.info("添加好友，用户id:{},好友id:{}", userId, friendId);
     }
 
@@ -107,7 +108,7 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
      * @param friendId 好友的用户id
      */
     @CacheEvict(key = "#userId+':'+#friendId")
-    public void bindFriend(Long userId, Long friendId) {
+    public void bindFriend(Long userId, Long friendId, String remarkName) {
         QueryWrapper<Friend> queryWrapper = new QueryWrapper<>();
         queryWrapper.lambda()
                 .eq(Friend::getUserId, userId)
@@ -119,6 +120,9 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
             User friendInfo = userMapper.selectById(friendId);
             friend.setFriendHeadImage(friendInfo.getHeadImage());
             friend.setFriendNickName(friendInfo.getNickName());
+            if(StringUtils.isNotBlank(remarkName)){
+                friend.setRemarkName(remarkName);
+            }
             this.save(friend);
         }
     }
@@ -160,11 +164,11 @@ public class FriendServiceImpl extends ServiceImpl<FriendMapper, Friend> impleme
     }
 
     @Override
-    public void addKefuFriend(Long kefuUserId, Long friendId) {
+    public void addKefuFriend(Long kefuUserId, Long friendId, String remarkName) {
         // 互相绑定好友关系
         FriendServiceImpl proxy = (FriendServiceImpl) AopContext.currentProxy();
-        proxy.bindFriend(kefuUserId, friendId);
-        proxy.bindFriend(friendId, kefuUserId);
+        proxy.bindFriend(kefuUserId, friendId,remarkName);
+        proxy.bindFriend(friendId, kefuUserId,"");
     }
 
     @Override

@@ -36,6 +36,7 @@
 					kefuUserId: null,
 					userIp: null,
 					loginType: null,
+					remarkName:null,
 				},
 				callCnt:0,
 				rules: {
@@ -137,6 +138,7 @@
 								this.autoLoginForm.kefuUserId = typeof this.info.kefuUserId == 'undefined'?'':this.info.kefuUserId;
 								this.autoLoginForm.userIp = typeof this.info.userIp == 'undefined'?'':this.info.userIp;
 								this.autoLoginForm.loginType = typeof this.info.loginType == 'undefined'?'':this.info.loginType;
+								this.autoLoginForm.remarkName = typeof this.info.remarkName == 'undefined'?'':this.info.remarkName;
 								if(this.callCnt == 0){
 									this.callCnt = this.callCnt + 1;
 									if(this.autoLoginForm.loginType == 'youke'){
