@@ -115,7 +115,8 @@
 				})
 			},
 			handleAdd(){
-				this.tableData.push({id:0,welcomeShowFlag:"1"});
+        console.log('handleAdd');
+				this.tableData.push({id:0,welcomeShowFlag:"1",content:'',answerContent:''});
 				this.cellIndex = 0;
 				this.$nextTick(() => {
 					// 滚动到新增行的位置
