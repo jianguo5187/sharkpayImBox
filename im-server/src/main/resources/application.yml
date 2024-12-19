@@ -23,4 +23,4 @@ jwt:
 # token配置
 token:
   # 是否允许账户多终端同时登录（true允许 false不允许）
-  singleLogin: false
+  singleLogin: true

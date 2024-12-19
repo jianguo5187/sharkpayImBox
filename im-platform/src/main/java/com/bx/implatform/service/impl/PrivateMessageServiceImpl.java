@@ -466,6 +466,14 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
     }
 
     @Override
+    public void onDeleteAllChatRecord() {
+        LambdaQueryWrapper<PrivateMessage> wrapper = Wrappers.lambdaQuery();
+//        Date minDate = DateUtils.addDays(new Date(), -1);
+//        wrapper.lt(PrivateMessage::getSendTime, minDate);
+        this.remove(wrapper);
+    }
+
+    @Override
     public void deleteOneDayBeforeMessage() {
         LambdaQueryWrapper<PrivateMessage> wrapper = Wrappers.lambdaQuery();
         Date minDate = DateUtils.addDays(new Date(), -1);

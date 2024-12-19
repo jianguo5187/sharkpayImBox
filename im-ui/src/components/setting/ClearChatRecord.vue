@@ -16,6 +16,7 @@
 <!--    </el-form>-->
 <!--    <span slot="footer" class="dialog-footer">-->
 <!--			<el-button @click="onClose()">取 消</el-button>-->
+    <el-button type="primary" @click="onDeleteAllChatRecord()">删除聊天数据</el-button>
     <el-button type="primary" @click="onDeleteOneDayBeforeChatRecord()">删除1天前聊天数据</el-button>
     <el-button type="primary" @click="onDeleteThreeDayBeforeChatRecord()">删除3天前聊天数据</el-button>
 <!--		</span>-->
@@ -110,6 +111,16 @@ export default {
     initForm(){
       this.changePasswordForm = {};
     },
+    onDeleteAllChatRecord(){
+      this.$http({
+        url: "/message/private/onDeleteAllChatRecord",
+        method: "delete",
+      }).then(()=>{
+        this.updateChatStorage(0);
+        this.$emit("close");
+        this.$message.success("删除成功");
+      })
+    },
     onDeleteOneDayBeforeChatRecord(){
       this.$http({
         url: "/message/private/deleteOneDayBeforeMessage",
@@ -137,54 +148,60 @@ export default {
       let item = localStorage.getItem(key)
       if(item){
         let chatsData = JSON.parse(item);
-        const compareTime = new Date().getTime() - 24 * 60 * 60 * 1000 * day;
-        //todo
-        // const compareTime = new Date().getTime() - 1000 * day;
-
-        for(let i=0;i<chatsData.chats.length;i++){
-          let chat = chatsData.chats[i];
-          let newChat = chat;
-          let newMessages = [];
-          let newMessageIndex = 0;
-          for(let y=0;y<chat.messages.length;y++){
-            let message = chat.messages[y];
-            if(message.type == '0'){
-              if(compareTime - message.sendTime < 0){
+        console.log('updateChatStorage')
+        if(day > 0){
+          const compareTime = new Date().getTime() - 24 * 60 * 60 * 1000 * day;
+          //todo
+          // const compareTime = new Date().getTime() - 1000 * day;
+          for(let i=0;i<chatsData.chats.length;i++){
+            let chat = chatsData.chats[i];
+            let newChat = chat;
+            let newMessages = [];
+            let newMessageIndex = 0;
+            for(let y=0;y<chat.messages.length;y++){
+              let message = chat.messages[y];
+              if(message.type == '0'){
+                if(compareTime - message.sendTime < 0){
+                  newMessages[newMessageIndex] = message;
+                  newMessageIndex++;
+                }
+              }else{
                 newMessages[newMessageIndex] = message;
                 newMessageIndex++;
               }
-            }else{
-              newMessages[newMessageIndex] = message;
-              newMessageIndex++;
             }
-          }
 
-          let lastNewMessages = [];
-          let lastNewMessageIndex = 0;
-          for(let j=0;j<newMessageIndex;j++){
-            if(j == newMessageIndex - 1){
-              lastNewMessages[lastNewMessageIndex] = newMessages[j];
-              lastNewMessageIndex++;
-              break;
+            let lastNewMessages = [];
+            let lastNewMessageIndex = 0;
+            for(let j=0;j<newMessageIndex;j++){
+              if(j == newMessageIndex - 1){
+                lastNewMessages[lastNewMessageIndex] = newMessages[j];
+                lastNewMessageIndex++;
+                break;
+              }
+              if(newMessages[j].type == '20' && newMessages[j+1].type == '20'){
+                continue;
+              }else{
+                lastNewMessages[lastNewMessageIndex] = newMessages[j];
+                lastNewMessageIndex++;
+              }
             }
-            if(newMessages[j].type == '20' && newMessages[j+1].type == '20'){
-              continue;
-            }else{
-              lastNewMessages[lastNewMessageIndex] = newMessages[j];
-              lastNewMessageIndex++;
-            }
-          }
 
-          if(lastNewMessages.length == 1 && lastNewMessages[0].type == '20'){
-            newChat.lastSendTime=lastNewMessages[0].sendTime;
-            newChat.lastTimeTip=lastNewMessages[0].sendTime;
-            lastNewMessages = [];
-            newChat.lastContent="";
-          }else if(lastNewMessages.length == 0){
-            newChat.lastContent="";
+            if(lastNewMessages.length == 1 && lastNewMessages[0].type == '20'){
+              newChat.lastSendTime=lastNewMessages[0].sendTime;
+              newChat.lastTimeTip=lastNewMessages[0].sendTime;
+              lastNewMessages = [];
+              newChat.lastContent="";
+            }else if(lastNewMessages.length == 0){
+              newChat.lastContent="";
+            }
+            newChat.messages = lastNewMessages;
+            chatsData.chats[i] = newChat;
           }
-          newChat.messages = lastNewMessages;
-          chatsData.chats[i] = newChat;
+        }else{
+          console.log('index' + this.$store.state.activeChatIndex)
+          this.$store.commit("removeChat", this.$store.state.chatStore.activeChatIndex);
+          chatsData.chats = []
         }
         this.$store.commit("initChats", chatsData);
         this.$store.commit("saveToStorage");

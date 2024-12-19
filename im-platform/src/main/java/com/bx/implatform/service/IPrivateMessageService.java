@@ -72,6 +72,8 @@ public interface IPrivateMessageService extends IService<PrivateMessage> {
 
     Integer getNoReadCnt();
 
+    void onDeleteAllChatRecord();
+
     void deleteOneDayBeforeMessage();
 
     void deleteThreeDayBeforeMessage();

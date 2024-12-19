@@ -78,6 +78,13 @@ public class PrivateMessageController {
         return ResultUtils.success(privateMessageService.getNoReadCnt());
     }
 
+    @DeleteMapping("/onDeleteAllChatRecord")
+    @ApiOperation(value = "删除聊天记录", notes = "删除聊天记录")
+    public Result onDeleteAllChatRecord() {
+        privateMessageService.onDeleteAllChatRecord();
+        return ResultUtils.success();
+    }
+
     @DeleteMapping("/deleteOneDayBeforeMessage")
     @ApiOperation(value = "删除1天前数据", notes = "删除1天前数据")
     public Result deleteOneDayBeforeMessage() {
