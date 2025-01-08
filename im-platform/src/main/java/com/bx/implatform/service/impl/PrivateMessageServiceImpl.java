@@ -102,7 +102,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                 autoAnswerMsg.setRecvId(session.getUserId());
 
                 String answerContent = "";
-                if(org.apache.commons.lang3.StringUtils.isNotEmpty(defaultMessageVO.getAnswerImgContent())){
+                if(StringUtils.isNotEmpty(defaultMessageVO.getAnswerImgContent())){
 
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("originUrl", defaultMessageVO.getAnswerImgContent());
@@ -115,7 +115,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                     autoAnswerMsg.setType(0);
                 }
 
-                autoAnswerMsg.setContent(defaultMessageVO.getAnswerContent());
+                autoAnswerMsg.setContent(answerContent);
                 autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
                 autoAnswerMsg.setSendTime(new Date());
                 this.save(autoAnswerMsg);
