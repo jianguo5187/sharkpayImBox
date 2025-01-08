@@ -96,42 +96,71 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
             List<DefaultMessageVO> defaultMessages = defaultMessageService.findAutoMessage(content);
             boolean autoAnserFlg = false;
             for(DefaultMessageVO defaultMessageVO : defaultMessages){
-                // 保存消息
-                PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
-                autoAnswerMsg.setSendId(dto.getRecvId());
-                autoAnswerMsg.setRecvId(session.getUserId());
 
-                String answerContent = "";
+                //判断是否有文字信息
+                if(StringUtils.isNotEmpty(defaultMessageVO.getAnswerContent())){
+
+                    // 保存消息
+                    PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+                    autoAnswerMsg.setSendId(dto.getRecvId());
+                    autoAnswerMsg.setRecvId(session.getUserId());
+
+                    String answerContent = "";
+                    answerContent = defaultMessageVO.getAnswerContent();
+                    autoAnswerMsg.setType(0);
+
+                    autoAnswerMsg.setContent(answerContent);
+                    autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
+                    autoAnswerMsg.setSendTime(new Date());
+                    this.save(autoAnswerMsg);
+                    // 过滤消息内容
+                    String autoAnswerContent = sensitiveFilterUtil.filter(answerContent);
+                    autoAnswerMsg.setContent(autoAnswerContent);
+                    // 推送消息
+                    PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
+                    IMPrivateMessage<PrivateMessageVO> autoAnswerSendMessage = new IMPrivateMessage<>();
+                    autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 0)); //0:PC
+                    autoAnswerSendMessage.setRecvId(session.getUserId());
+                    autoAnswerSendMessage.setSendToSelf(true);
+                    autoAnswerSendMessage.setData(autoAnswerMsgInfo);
+                    autoAnswerSendMessage.setSendResult(true);
+                    imClient.sendPrivateMessage(autoAnswerSendMessage);
+                    log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), answerContent);
+                }
+
+                //判断是否有图片信息
                 if(StringUtils.isNotEmpty(defaultMessageVO.getAnswerImgContent())){
 
+                    // 保存消息
+                    PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+                    autoAnswerMsg.setSendId(dto.getRecvId());
+                    autoAnswerMsg.setRecvId(session.getUserId());
+                    String answerContent = "";
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("originUrl", defaultMessageVO.getAnswerImgContent());
                     jsonObject.put("thumbUrl", defaultMessageVO.getAnswerImgContent());
-//                        System.out.println(jsonObject.toString());
                     answerContent = jsonObject.toString();
                     autoAnswerMsg.setType(1);
-                }else{
-                    answerContent = defaultMessageVO.getAnswerContent();
-                    autoAnswerMsg.setType(0);
+
+                    autoAnswerMsg.setContent(answerContent);
+                    autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
+                    autoAnswerMsg.setSendTime(new Date());
+                    this.save(autoAnswerMsg);
+                    // 过滤消息内容
+                    String autoAnswerContent = sensitiveFilterUtil.filter(answerContent);
+                    autoAnswerMsg.setContent(autoAnswerContent);
+                    // 推送消息
+                    PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
+                    IMPrivateMessage<PrivateMessageVO> autoAnswerSendMessage = new IMPrivateMessage<>();
+                    autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 0)); //0:PC
+                    autoAnswerSendMessage.setRecvId(session.getUserId());
+                    autoAnswerSendMessage.setSendToSelf(true);
+                    autoAnswerSendMessage.setData(autoAnswerMsgInfo);
+                    autoAnswerSendMessage.setSendResult(true);
+                    imClient.sendPrivateMessage(autoAnswerSendMessage);
+                    log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), answerContent);
                 }
 
-                autoAnswerMsg.setContent(answerContent);
-                autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
-                autoAnswerMsg.setSendTime(new Date());
-                this.save(autoAnswerMsg);
-                // 过滤消息内容
-                String autoAnswerContent = sensitiveFilterUtil.filter(answerContent);
-                autoAnswerMsg.setContent(autoAnswerContent);
-                // 推送消息
-                PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
-                IMPrivateMessage<PrivateMessageVO> autoAnswerSendMessage = new IMPrivateMessage<>();
-                autoAnswerSendMessage.setSender(new IMUserInfo(dto.getRecvId(), 0)); //0:PC
-                autoAnswerSendMessage.setRecvId(session.getUserId());
-                autoAnswerSendMessage.setSendToSelf(true);
-                autoAnswerSendMessage.setData(autoAnswerMsgInfo);
-                autoAnswerSendMessage.setSendResult(true);
-                imClient.sendPrivateMessage(autoAnswerSendMessage);
-                log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), answerContent);
 //                readedMessage(dto.getRecvId());
                 autoAnserFlg = true;
             }
