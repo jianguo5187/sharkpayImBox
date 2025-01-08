@@ -32,13 +32,31 @@
 					<p v-show="scope.row.id != cellIndex" v-html="$emo.transform(scope.row.content)"></p>
 				</template>
 			</el-table-column>
-			<el-table-column prop="answerContent" label="回答">
+			<el-table-column prop="answerContent" label="回答文本">
 				<template slot-scope="scope">
-					<el-input v-model="scope.row.answerContent" clearable v-show="scope.row.id == cellIndex" />
+					<el-input v-model="scope.row.answerContent" :disabled="scope.row.imgContent != undefined && scope.row.imgContent != ''" clearable v-show="scope.row.id == cellIndex" />
 					<p v-show="scope.row.id != cellIndex" v-html="$emo.transform(scope.row.answerContent)"></p>
 				</template>
 			</el-table-column>
-			<el-table-column prop="welcomeShowFlag" label="状态" width="180">
+
+      <el-table-column label="回答图片" align="center" prop="answerImgContent" width="120">
+        <template slot-scope="scope">
+          <file-upload  class="autoAnswer-uploader"
+                        :disabled="scope.row.id != cellIndex"
+                        :action="imageAction"
+                        :showLoading="true"
+                        :maxSize="maxSize"
+                        @success="onAnswerUploadSuccess"
+                        @before="onBeforeUpload(scope.row)"
+                        @fail="onUploadFail"
+                        :fileTypes="['image/jpeg', 'image/png', 'image/jpg','image/webp']">
+            <img v-if="scope.row.answerImgContent != undefined && scope.row.answerImgContent != ''" :src="scope.row.answerImgContent" class="avatar">
+            <i v-else class="el-icon-plus autoAnswer-uploader-icon"></i>
+          </file-upload>
+        </template>
+      </el-table-column>
+
+			<el-table-column prop="welcomeShowFlag" label="状态" width="80">
 				<template slot-scope="scope">
 					<el-switch
 					v-model="scope.row.welcomeShowFlag"
@@ -74,6 +92,13 @@
 					@click="handleDelete(scope.row)"
 					v-show="scope.row.id != 0"
 				>删除</el-button>
+        <el-button
+            size="mini"
+            type="text"
+            icon="el-icon-close"
+            @click="handleCancle(scope.row)"
+            v-show="scope.row.id == cellIndex"
+        >取消</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -98,7 +123,9 @@
 				},
 				tableData: [
 				],
-				cellIndex:0,
+				cellIndex:undefined,
+        maxSize: 5*1024*1024,
+        uploadFileRowId:undefined,
 			}
 		},
 		methods: {
@@ -116,7 +143,8 @@
 			},
 			handleAdd(){
         console.log('handleAdd');
-				this.tableData.push({id:0,welcomeShowFlag:"1",content:'',answerContent:''});
+        // this.tableData.push({id:0});
+				this.tableData.push({id:0,welcomeShowFlag:"1",content:'',answerContent:'',answerImgContent:''});
 				this.cellIndex = 0;
 				this.$nextTick(() => {
 					// 滚动到新增行的位置
@@ -128,6 +156,12 @@
 			},
 			handleSave(row){
 				console.log(row);
+
+        if((row.answerImgContent == undefined || row.answerImgContent == "") && (row.answerContent == undefined || row.answerContent == "")){
+          this.$message.error(`发送图片或发送内容必须输入一个`);
+          return;
+        }
+
 				this.$http({
 					url: `/defaultMessage/saveDefaultMessage`,
 					method: "post",
@@ -163,6 +197,27 @@
 					})
 				})
 			},
+      handleCancle(row){
+        this.cellIndex = 0;
+        this.onFindDefaultMessage();
+      },
+      onBeforeUpload(row){
+        this.uploadFileRowId = row.id;
+      },
+      onUploadFail(error, file){
+        console.log('onUploadSuccess');
+        console.log(error);
+      },
+      onAnswerUploadSuccess(data, file) {
+        console.log('onUploadSuccess');
+
+        this.tableData.forEach((rowData) => {
+          if(rowData.id == this.cellIndex){
+            rowData.answerImgContent = data.originUrl;
+          }
+        })
+        this.$forceUpdate();
+      },
 		},
 		props: {
 			visible: {
@@ -190,35 +245,35 @@
 </script>
 
 <style lang="scss" >
-	.setting {
-		.avatar-uploader {
-			
-			.el-upload {
-				border: 1px dashed #d9d9d9 !important;
-				border-radius: 6px;
-				cursor: pointer;
-				position: relative;
-				overflow: hidden;
-			}
+.setting {
+  .autoAnswer-uploader {
 
-			.el-upload:hover {
-				border-color: #409EFF;
-			}
+    .el-upload {
+      border: 1px dashed #d9d9d9 !important;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
 
-			.avatar-uploader-icon {
-				font-size: 28px;
-				color: #8c939d;
-				width: 178px;
-				height: 178px;
-				line-height: 178px;
-				text-align: center;
-			}
+    .el-upload:hover {
+      border-color: #409EFF;
+    }
 
-			.avatar {
-				width: 178px;
-				height: 178px;
-				display: block;
-			}
-		}
-	}
+    .autoAnswer-uploader-icon {
+      font-size: 28px;
+      color: #8c939d;
+      width: 60px;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+    }
+
+    .avatar {
+      width: 60px;
+      height: 60px;
+      display: block;
+    }
+  }
+}
 </style>

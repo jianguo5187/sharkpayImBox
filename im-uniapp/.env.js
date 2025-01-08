@@ -20,8 +20,8 @@ if(ENV=="PROD"){
 	// UNI_APP.WS_URL = "ws://43.129.82.76:8878/im";
 	// UNI_APP.BASE_URL = "http://43.132.168.72:82/api";
 	// UNI_APP.WS_URL = "ws://43.132.168.72:8878/im";
-	// UNI_APP.WS_URL = "ws://47.57.188.97:8878/im";
+	UNI_APP.WS_URL = "ws://43.154.184.118:8878/im";
 	// UNI_APP.BASE_URL = "https://kfnd1.ztffp.cn/api";
-	UNI_APP.WS_URL = "wss://ngbt.qdcspy.shop/im";
+	// UNI_APP.WS_URL = "wss://imlt2b.etbw.cn/im";
 }
 export default UNI_APP

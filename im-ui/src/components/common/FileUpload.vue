@@ -1,8 +1,27 @@
 <template>
-	<el-upload :action="'#'" :http-request="onFileUpload" :accept="fileTypes==null?'':fileTypes.join(',')" :show-file-list="false"
-		:disabled="disabled" :before-upload="beforeUpload">
-		<slot></slot>
-	</el-upload>
+  <div>
+    <el-upload :action="'#'" :http-request="onFileUpload" :accept="fileTypes==null?'':fileTypes.join(',')" :show-file-list="false"
+      :disabled="disabled" :before-upload="beforeUpload"
+
+               :on-remove="handleDelete"
+               :on-preview="handlePictureCardPreview"
+    >
+      <slot></slot>
+    </el-upload>
+
+
+    <el-dialog
+        :visible.sync="dialogVisible"
+        title="预览"
+        width="800"
+        append-to-body
+    >
+      <img
+          :src="dialogImageUrl"
+          style="display: block; max-width: 100%; margin: 0 auto"
+      />
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -11,6 +30,8 @@
 		data() {
 			return {
 				loading: null,
+        dialogImageUrl: "",
+        dialogVisible: false,
 				uploadHeaders: {
 					"accessToken": sessionStorage.getItem('accessToken')
 				}
@@ -85,7 +106,32 @@
 
 				this.$emit("before", file);
 				return true;
-			}
+			},
+      // 删除图片
+      handleDelete(file) {
+        const findex = this.fileList.map(f => f.name).indexOf(file.name);
+        if (findex > -1) {
+          this.fileList.splice(findex, 1);
+          this.$emit("input", this.listToString(this.fileList));
+        }
+      },
+      // 预览
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url;
+        this.dialogVisible = true;
+      },
+
+      // 对象转成指定字符串分隔
+      listToString(list, separator) {
+        let strs = "";
+        separator = separator || ",";
+        for (let i in list) {
+          if (list[i].url) {
+            strs += list[i].url.replace(this.baseUrl, "") + separator;
+          }
+        }
+        return strs != '' ? strs.substr(0, strs.length - 1) : '';
+      },
 		},
 		computed: {
 			fileSizeStr() {

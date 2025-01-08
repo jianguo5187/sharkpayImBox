@@ -64,12 +64,14 @@ public class DefaultMessageServiceImpl extends ServiceImpl<DefaultMessageMapper,
         if(dto.getId().compareTo(0l) > 0){
             DefaultMessage defaultMessage = this.getById(dto.getId());
             defaultMessage.setContent(dto.getContent());
+            defaultMessage.setAnswerImgContent(dto.getAnswerImgContent());
             defaultMessage.setAnswerContent(dto.getAnswerContent());
             defaultMessage.setWelcomeShowFlag(dto.getWelcomeShowFlag());
             this.updateById(defaultMessage);
         }else {
             DefaultMessage defaultMessage = new DefaultMessage();
             defaultMessage.setContent(dto.getContent());
+            defaultMessage.setAnswerImgContent(dto.getAnswerImgContent());
             defaultMessage.setAnswerContent(dto.getAnswerContent());
             defaultMessage.setWelcomeShowFlag(dto.getWelcomeShowFlag());
             defaultMessage.setStatus(0);

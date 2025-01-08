@@ -38,6 +38,12 @@ public class DefaultMessage extends Model<DefaultMessage>{
     private String content;
 
     /**
+     * 回答图片内容
+     */
+    @TableField("answer_img_content")
+    private String answerImgContent;
+
+    /**
      * 回答内容
      */
     @TableField("answer_content")

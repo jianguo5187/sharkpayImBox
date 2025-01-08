@@ -1,6 +1,7 @@
 package com.bx.implatform.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -99,12 +100,27 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                 PrivateMessage autoAnswerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
                 autoAnswerMsg.setSendId(dto.getRecvId());
                 autoAnswerMsg.setRecvId(session.getUserId());
+
+                String answerContent = "";
+                if(org.apache.commons.lang3.StringUtils.isNotEmpty(defaultMessageVO.getAnswerImgContent())){
+
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("originUrl", defaultMessageVO.getAnswerImgContent());
+                    jsonObject.put("thumbUrl", defaultMessageVO.getAnswerImgContent());
+//                        System.out.println(jsonObject.toString());
+                    answerContent = jsonObject.toString();
+                    autoAnswerMsg.setType(1);
+                }else{
+                    answerContent = defaultMessageVO.getAnswerContent();
+                    autoAnswerMsg.setType(0);
+                }
+
                 autoAnswerMsg.setContent(defaultMessageVO.getAnswerContent());
                 autoAnswerMsg.setStatus(MessageStatus.UNSEND.code());
                 autoAnswerMsg.setSendTime(new Date());
                 this.save(autoAnswerMsg);
                 // 过滤消息内容
-                String autoAnswerContent = sensitiveFilterUtil.filter(defaultMessageVO.getAnswerContent());
+                String autoAnswerContent = sensitiveFilterUtil.filter(answerContent);
                 autoAnswerMsg.setContent(autoAnswerContent);
                 // 推送消息
                 PrivateMessageVO autoAnswerMsgInfo = BeanUtils.copyProperties(autoAnswerMsg, PrivateMessageVO.class);
@@ -115,7 +131,7 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
                 autoAnswerSendMessage.setData(autoAnswerMsgInfo);
                 autoAnswerSendMessage.setSendResult(true);
                 imClient.sendPrivateMessage(autoAnswerSendMessage);
-                log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), defaultMessageVO.getAnswerContent());
+                log.info("发送私聊消息，发送id:{},接收id:{}，内容:{}", dto.getRecvId(), session.getUserId(), answerContent);
 //                readedMessage(dto.getRecvId());
                 autoAnserFlg = true;
             }

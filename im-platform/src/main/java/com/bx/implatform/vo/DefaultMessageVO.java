@@ -18,6 +18,9 @@ public class DefaultMessageVO {
     @ApiModelProperty(value = " 发送内容")
     private String content;
 
+    @ApiModelProperty(value = " 回答图片内容")
+    private String answerImgContent;
+
     @ApiModelProperty(value = " 回答内容")
     private String answerContent;
 
