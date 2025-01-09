@@ -55,6 +55,7 @@
 <!--									@click="showChatVideo('video')">-->
 <!--								</div>-->
 								<div title="聊天记录" class="el-icon-chat-dot-round" @click="showHistoryBox()"></div>
+                <div title="快捷回复" class="el-icon-notebook-2" @click="showQuickAnswerBox()"></div>
 							</div>
 							<div class="send-content-area">
 								<div contenteditable="true" v-show="!sendImageUrl" ref="editBox" class="send-text-area"
@@ -89,6 +90,8 @@
 			<chat-voice :visible="showVoice" @close="closeVoiceBox" @send="onSendVoice"></chat-voice>
 			<chat-history :visible="showHistory" :chat="chat" :friend="friend" :group="group" :groupMembers="groupMembers"
 				@close="closeHistoryBox"></chat-history>
+      <chat-quick-answer :visible="showQuickAnswer" :chat="chat" :friend="friend" :group="group" :groupMembers="groupMembers"
+                    @close="closeQuickAnswerBox" @quickanswer="onQuickAnswerMessage"></chat-quick-answer>
 		</el-container>
 	</div>
 </template>
@@ -101,6 +104,7 @@ import Emotion from "../common/Emotion.vue";
 import ChatVoice from "./ChatVoice.vue";
 import ChatHistory from "./ChatHistory.vue";
 import ChatAtBox from "./ChatAtBox.vue"
+import ChatQuickAnswer from "./ChatQuickAnswer.vue";
 
 export default {
 	name: "chatPrivate",
@@ -111,7 +115,8 @@ export default {
 		Emotion,
 		ChatVoice,
 		ChatHistory,
-		ChatAtBox
+		ChatAtBox,
+    ChatQuickAnswer,
 	},
 	props: {
 		chat: {
@@ -134,7 +139,8 @@ export default {
 			atSearchText: "",
 			focusNode: null, // 缓存光标所在节点
 			focusOffset: null, // 缓存光标所在节点位置
-			zhLock: false // 解决中文输入法触发英文的情况
+			zhLock: false, // 解决中文输入法触发英文的情况
+      showQuickAnswer: false, // 是否显示历史聊天记录
 		}
 	},
 	methods: {
@@ -468,13 +474,25 @@ export default {
 			}
 			this.$store.commit("setRtcInfo",rtcInfo);
 		},
-		showHistoryBox() {
-			this.showHistory = true;
-		},
-		closeHistoryBox() {
-			this.showHistory = false;
-		},
-		onSendVoice(data) {
+    showHistoryBox() {
+      this.showHistory = true;
+    },
+    closeHistoryBox() {
+      this.showHistory = false;
+    },
+    showQuickAnswerBox() {
+      this.showQuickAnswer = true;
+    },
+    closeQuickAnswerBox() {
+      this.showQuickAnswer = false;
+    },
+    onQuickAnswerMessage(quickAnswer) {
+      this.showQuickAnswer = false;
+      // alert(quickAnswer);
+      this.focusNode.textContent = quickAnswer;
+      this.sendTextMessage();
+    },
+    onSendVoice(data) {
 			let msgInfo = {
 				content: JSON.stringify(data),
 				type: 3,
