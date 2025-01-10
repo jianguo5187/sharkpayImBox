@@ -369,7 +369,12 @@
 						})
 					}
 				});
-			}
+			},
+      loadReadedMessage(){
+        console.log("loadReadedMessage");
+        // 加载离线消息
+        this.pullPrivateOfflineMessage(this.$store.state.chatStore.privateMsgMaxId);
+      },
 		},
 		computed: {
 			uiStore() {
@@ -396,6 +401,7 @@
 		mounted() {
 			this.init();
       setInterval(this.getNoReadCnt,15000);//每20s获取一次
+      setInterval(this.loadReadedMessage,20000);//每20s获取一次
 		},
 		unmounted() {
 			this.$wsApi.close();

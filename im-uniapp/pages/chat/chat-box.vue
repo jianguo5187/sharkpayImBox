@@ -665,7 +665,7 @@
 			autoAnswer(content){
 				console.log('autoAnswer')
 				this.sendText = content;
-				this.sendTextMessage(true);
+				this.sendAutoAnswerMessage(true,content);
 				// alert(content);
 				// if(msgInfo.autoMessageFlg){
 				// 	this.sendText = msgInfo.content;
@@ -682,6 +682,108 @@
 				// }else if (msgInfo.type==this.$enums.MESSAGE_TYPE.IMAGE) {
 				// 	this.onSaveImg(msgInfo);
 				// }
+			},
+			sendAutoAnswerMessage(autoMessageFlg,content) {
+				var autoAnswerMessage = "";
+				var autoAnswerImgMessage = "";
+				for(var i=0;i<this.questions.length;i++){
+					var question = this.questions[i];
+					if(question.content == content){
+						autoAnswerMessage = question.answerContent;
+						if(question.answerImgContent && question.answerImgContent.length > 0){
+							let autoAnswerImgData = {
+								originUrl: question.answerImgContent,
+								thumbUrl: question.answerImgContent
+							}
+							autoAnswerImgMessage = JSON.stringify(autoAnswerImgData);
+						}
+					}
+				}
+				console.log('sendAutoAnswerMessage');
+				// if (!this.sendText.trim() && this.atUserIds.length == 0) {
+				// 	return uni.showToast({
+				// 		title: "不能发送空白信息",
+				// 		icon: "none"
+				// 	});
+				// }
+				let receiptText = this.isReceipt ? "【回执消息】" : "";
+				let atText = this.createAtText();
+				let sendReadedInfo = {
+					content: receiptText + this.sendText + atText,
+					answerContent: autoAnswerMessage,
+					answerImgContent: autoAnswerImgMessage,
+					type: 0
+				}
+				
+				let msgInfo = {
+					content: receiptText + this.sendText + atText,
+					atUserIds: this.atUserIds,
+					receipt: this.isReceipt,
+					type: 0
+				}
+				// 填充对方id
+				this.fillTargetId(msgInfo, this.chat.targetId);
+				this.fillTargetId(sendReadedInfo, this.chat.targetId);
+				this.sendText = "";
+				this.$http({
+					url: `/message/private/sendReaded`,
+					method: 'POST',
+					data: sendReadedInfo
+				}).then((data) => {
+					msgInfo.id = data.sendMessageId;
+					msgInfo.sendTime = new Date().getTime();
+					msgInfo.sendId = this.$store.state.userStore.userInfo.id;
+					msgInfo.selfSend = true;
+					msgInfo.readedCount = 0;
+					msgInfo.status = this.$enums.MESSAGE_STATUS.READED;
+					if(autoMessageFlg){
+						msgInfo.hiddenReadFlg = true;
+					// 	msgInfo.contexts=[];
+					// 	msgInfo.contexts.push({content:msgInfo.content,autoMessageFlg:false})
+					}
+					this.$store.commit("insertMessage", msgInfo);
+					
+					if(autoAnswerMessage != ""){
+						let autoMsgInfo = {
+							id: data.answerMessageId,
+							content: autoAnswerMessage,
+							type: 0,
+							sendTime: (new Date().getTime() + 100),
+							sendId: msgInfo.recvId,
+							recvId: this.$store.state.userStore.userInfo.id,
+							selfSend: false,
+							status: this.$enums.MESSAGE_STATUS.READED,
+						}
+						this.$store.commit("insertMessage", autoMsgInfo);
+					}
+					if(autoAnswerImgMessage != ""){
+						
+						let autoImgMsgInfo = {
+							id: data.answerImgMessageId,
+							content: autoAnswerImgMessage,
+							type: 1,
+							sendTime: (new Date().getTime() + 100),
+							sendId: msgInfo.recvId,
+							recvId: this.$store.state.userStore.userInfo.id,
+							selfSend: false,
+							status: this.$enums.MESSAGE_STATUS.READED,
+						}
+						this.$store.commit("insertMessage", autoImgMsgInfo);
+					}
+					
+					// 会话置顶
+					this.moveChatToTop();
+					this.sendText = "";
+					// if(autoMessageFlg){
+					// 	this.loadReaded(this.chat.targetId);
+					// }
+				}).finally(() => {
+					// 滚动到底部
+					this.scrollToBottom();
+					// 清空@用户列表
+					this.atUserIds = [];
+					this.isReceipt = false;
+				});
 			},
 			handClickItemMessage(alert){
 				alert(123);

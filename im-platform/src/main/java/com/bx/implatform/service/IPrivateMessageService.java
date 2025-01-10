@@ -3,8 +3,10 @@ package com.bx.implatform.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bx.implatform.dto.NoAuthNoReadCntDto;
 import com.bx.implatform.dto.PrivateMessageDTO;
+import com.bx.implatform.dto.PrivateReadedMessageDTO;
 import com.bx.implatform.entity.PrivateMessage;
 import com.bx.implatform.vo.PrivateMessageVO;
+import com.bx.implatform.vo.PrivateReadedMessageVO;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public interface IPrivateMessageService extends IService<PrivateMessage> {
      */
     Long sendMessage(PrivateMessageDTO dto);
 
+    PrivateReadedMessageVO sendReadedMessage(PrivateReadedMessageDTO dto);
 
     /**
      * 撤回消息

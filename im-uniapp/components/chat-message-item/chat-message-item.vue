@@ -190,7 +190,7 @@
 				this.$refs.chatGroupReaded.open();
 			},
 			handClickItemMessage(content){
-				// console.log(123);
+				console.log('handClickItemMessage');
 				if(content.autoMessageFlg){
 					this.$emit('autoAnswer',content.content)
 				}

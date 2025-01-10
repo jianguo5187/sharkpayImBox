@@ -2,10 +2,12 @@ package com.bx.implatform.controller;
 
 import com.bx.implatform.dto.NoAuthNoReadCntDto;
 import com.bx.implatform.dto.PrivateMessageDTO;
+import com.bx.implatform.dto.PrivateReadedMessageDTO;
 import com.bx.implatform.result.Result;
 import com.bx.implatform.result.ResultUtils;
 import com.bx.implatform.service.IPrivateMessageService;
 import com.bx.implatform.vo.PrivateMessageVO;
+import com.bx.implatform.vo.PrivateReadedMessageVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,12 @@ public class PrivateMessageController {
         return ResultUtils.success(privateMessageService.sendMessage(vo));
     }
 
+
+    @PostMapping("/sendReaded")
+    @ApiOperation(value = "发送已读消息", notes = "发送私聊消息")
+    public Result<PrivateReadedMessageVO> sendReadedMessage(@Valid @RequestBody PrivateReadedMessageDTO vo) {
+        return ResultUtils.success(privateMessageService.sendReadedMessage(vo));
+    }
 
     @DeleteMapping("/recall/{id}")
     @ApiOperation(value = "撤回消息", notes = "撤回私聊消息")

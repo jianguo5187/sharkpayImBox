@@ -16,6 +16,7 @@ import com.bx.imcommon.model.IMPrivateMessage;
 import com.bx.imcommon.model.IMUserInfo;
 import com.bx.implatform.dto.NoAuthNoReadCntDto;
 import com.bx.implatform.dto.PrivateMessageDTO;
+import com.bx.implatform.dto.PrivateReadedMessageDTO;
 import com.bx.implatform.entity.Friend;
 import com.bx.implatform.entity.PrivateMessage;
 import com.bx.implatform.entity.User;
@@ -32,10 +33,7 @@ import com.bx.implatform.session.SessionContext;
 import com.bx.implatform.session.UserSession;
 import com.bx.implatform.util.BeanUtils;
 import com.bx.implatform.util.SensitiveFilterUtil;
-import com.bx.implatform.vo.DefaultMessageVO;
-import com.bx.implatform.vo.GroupMessageVO;
-import com.bx.implatform.vo.PrivateMessageVO;
-import com.bx.implatform.vo.UserVO;
+import com.bx.implatform.vo.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
@@ -171,6 +169,47 @@ public class PrivateMessageServiceImpl extends ServiceImpl<PrivateMessageMapper,
         return msg.getId();
     }
 
+    @Override
+    public PrivateReadedMessageVO sendReadedMessage(PrivateReadedMessageDTO dto){
+        PrivateReadedMessageVO vo = new PrivateReadedMessageVO();
+        UserSession session = SessionContext.getSession();
+        Boolean isFriends = friendService.isFriend(session.getUserId(), dto.getRecvId());
+        if (Boolean.FALSE.equals(isFriends)) {
+            throw new GlobalException(ResultCode.PROGRAM_ERROR, "您已不是对方好友，无法发送消息");
+        }
+        // 保存发送消息
+        PrivateMessage msg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+        msg.setSendId(session.getUserId());
+        msg.setStatus(MessageStatus.READED.code());
+        msg.setSendTime(new Date());
+        this.save(msg);
+        vo.setSendMessageId(msg.getId());
+
+        if(!StringUtils.isEmpty(dto.getAnswerContent())){
+            PrivateMessage answerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+            answerMsg.setRecvId(session.getUserId());
+            answerMsg.setSendId(dto.getRecvId());
+            answerMsg.setContent(dto.getAnswerContent());
+            answerMsg.setStatus(MessageStatus.READED.code());
+            answerMsg.setSendTime(new Date());
+            this.save(answerMsg);
+            vo.setAnswerMessageId(answerMsg.getId());
+        }
+
+        if(!StringUtils.isEmpty(dto.getAnswerImgContent())){
+            PrivateMessage answerMsg = BeanUtils.copyProperties(dto, PrivateMessage.class);
+            answerMsg.setRecvId(session.getUserId());
+            answerMsg.setSendId(dto.getRecvId());
+            answerMsg.setContent(dto.getAnswerImgContent());
+            answerMsg.setStatus(MessageStatus.READED.code());
+            answerMsg.setSendTime(new Date());
+            answerMsg.setType(1);
+            this.save(answerMsg);
+            vo.setAnswerImgMessageId(answerMsg.getId());
+        }
+
+        return vo;
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public void autoReadedMessage(Long kefuUserId,Long playUserId) {
